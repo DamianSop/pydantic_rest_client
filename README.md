@@ -25,7 +25,7 @@ import asyncio
 from rest_client import AioHttpRestClient
 from pydantic import BaseModel
 
-
+# Define Pydantic models for data validation
 class GetUserModel(BaseModel):
     id: int
     first_name: str | None
@@ -42,13 +42,16 @@ class PostUserModel(BaseModel):
     createdAt: str
 
 
+# Create an API client using AioHttpRestClient
 class ApiExample:
     client = AioHttpRestClient('https://reqres.in/api')
 
+    # Define a method to get user data
     @client.get_response_model(DataModel)
     def get_user(self, user_id: int):
         return self.client.get(f'/users/{user_id}')
 
+    # Define a method to post user data
     @client.get_response_model(PostUserModel)
     def post_example(self, name: str, job: str):
         user_dict = {
@@ -61,13 +64,15 @@ class ApiExample:
 async def main():
     api_example = ApiExample()
 
+    # Get user data for user with ID 2
     user, status_code = await api_example.get_user(2)
-    print(status_code)  # 200
-    print(user)  # data=UserModel(id=2, first_name='Janet')
+    print(status_code)  # Output: 200
+    print(user)  # Output: data=UserModel(id=2, first_name='Janet')
 
+    # Post user data
     user, status_code = await api_example.post_example(name='Damian', job='developer')
-    print(status_code)  # 201
-    print(user)  # name='Damian' job='developer' id=718 createdAt='2024-03-25T13:23:28.625Z'
+    print(status_code)  # Output: 201
+    print(user)  # Output: name='Damian' job='developer' id=718 createdAt='2024-03-25T13:23:28.625Z'
 
 if __name__ == '__main__':
     asyncio.run(main())
