@@ -19,11 +19,13 @@ pip install git+https://github.com/DamianSop/pydantic_rest_client.git
 
 ## Usage
 Here is a simple example of how to use the Pydantic REST Client:
+
 ```python
 import asyncio
 
 from rest_client import AioHttpRestClient
 from pydantic import BaseModel
+
 
 # Define Pydantic models for data validation
 class GetUserModel(BaseModel):
@@ -53,7 +55,7 @@ class ApiExample:
 
     # Define a method to post user data
     @client.get_response_model(PostUserModel)
-    def post_example(self, name: str, job: str):
+    def post_user(self, name: str, job: str):
         user_dict = {
             'name': name,
             'job': job
@@ -70,9 +72,10 @@ async def main():
     print(user)  # Output: data=UserModel(id=2, first_name='Janet')
 
     # Post user data
-    user, status_code = await api_example.post_example(name='Damian', job='developer')
+    user, status_code = await api_example.post_user(name='Damian', job='developer')
     print(status_code)  # Output: 201
     print(user)  # Output: name='Damian' job='developer' id=718 createdAt='2024-03-25T13:23:28.625Z'
+
 
 if __name__ == '__main__':
     asyncio.run(main())
