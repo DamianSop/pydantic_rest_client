@@ -12,8 +12,8 @@ from pathlib import Path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from rest_client import AioHttpRestClient
-from rest_client.exceptions import RestClientError
+from pydantic_rest_client import AioHttpRestClient
+from pydantic_rest_client.exceptions import RestClientError
 
 
 class SimpleTestRunner:

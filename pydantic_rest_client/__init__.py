@@ -11,7 +11,7 @@ from .exceptions import (
     TimeoutError,
 )
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 __author__ = "Damian Sop"
 __email__ = "damian.sop.official@gmail.com"
 

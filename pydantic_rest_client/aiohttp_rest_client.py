@@ -37,7 +37,8 @@ class AioHttpRestClient(RestClient):
         method: str, 
         url: str, 
         data: Optional[Union[Dict, list]] = None, 
-        headers: Optional[Dict] = None
+        headers: Optional[Dict] = None,
+        form_data: Optional[Dict[str, str]] = None
     ) -> Tuple[Any, int]:
         """
         Common method for executing HTTP requests
@@ -45,8 +46,9 @@ class AioHttpRestClient(RestClient):
         Args:
             method: HTTP method (GET, POST, PUT, PATCH, DELETE)
             url: URL for the request
-            data: Data to send
+            data: JSON data to send
             headers: Additional headers
+            form_data: Form data to send (mutually exclusive with data)
             
         Returns:
             Tuple[Any, int]: (json_data, status_code)
@@ -60,14 +62,23 @@ class AioHttpRestClient(RestClient):
         
         # Prepare data for sending
         json_data = None
+        request_data = None
+        
         if data is not None:
             json_data = json.dumps(data)
+        elif form_data is not None:
+            # Convert form_data to aiohttp.FormData
+            from aiohttp import FormData
+            form = FormData()
+            for key, value in form_data.items():
+                form.add_field(key, str(value))
+            request_data = form
         
         try:
             async with session.request(
                 method=method,
                 url=self.base_url + url,
-                data=json_data,
+                data=json_data or request_data,
                 headers=merged_headers
             ) as response:
                 status = response.status
@@ -101,9 +112,25 @@ class AioHttpRestClient(RestClient):
         """Executes DELETE request"""
         return await self._make_request('DELETE', url, headers=headers)
 
-    async def post(self, url: str, data: Optional[Union[Dict, list]] = None, headers: Optional[Dict] = None) -> Tuple[Any, int]:
-        """Executes POST request"""
-        return await self._make_request('POST', url, data=data, headers=headers)
+    async def post(self, url: str, data: Optional[Dict[str, Any]] = None, 
+                   headers: Optional[Dict[str, str]] = None, 
+                   form_data: Optional[Dict[str, str]] = None) -> Tuple[Any, int]:
+        """
+        Send POST request
+        
+        Args:
+            url: Endpoint URL
+            data: JSON data to send
+            headers: Additional headers
+            form_data: Form data to send (mutually exclusive with data)
+            
+        Returns:
+            Tuple of (response_data, status_code)
+        """
+        if data is not None and form_data is not None:
+            raise ValueError("Cannot use both 'data' and 'form_data' parameters")
+            
+        return await self._make_request('POST', url, data=data, form_data=form_data, headers=headers)
 
     async def put(self, url: str, data: Optional[Union[Dict, list]] = None, headers: Optional[Dict] = None) -> Tuple[Any, int]:
         """Executes PUT request"""

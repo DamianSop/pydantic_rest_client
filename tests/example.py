@@ -1,4 +1,4 @@
-from rest_client import AioHttpRestClient
+from pydantic_rest_client import AioHttpRestClient
 from pydantic import BaseModel
 
 

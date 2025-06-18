@@ -5,6 +5,10 @@ import os
 from unittest.mock import AsyncMock, patch, MagicMock
 from .example import ApiExample
 import json
+from typing import Dict, Any
+
+# Import the client
+from pydantic_rest_client import AioHttpRestClient
 
 # Helper to skip API tests if no TEST_API env var
 skip_api = pytest.mark.skipif(
@@ -172,7 +176,7 @@ class TestAioHttpRestClient:
     @pytest_asyncio.fixture
     async def client(self):
         """Fixture for creating client"""
-        from rest_client import AioHttpRestClient
+        from pydantic_rest_client import AioHttpRestClient
         client = AioHttpRestClient('https://api.example.com')
         yield client
         # Clean up after each test
@@ -184,7 +188,7 @@ class TestAioHttpRestClient:
     @pytest.mark.asyncio
     async def test_client_initialization(self):
         """Test client initialization"""
-        from rest_client import AioHttpRestClient
+        from pydantic_rest_client import AioHttpRestClient
         
         # Test with valid parameters
         client = AioHttpRestClient('https://api.example.com')
@@ -203,7 +207,7 @@ class TestAioHttpRestClient:
     @pytest.mark.asyncio
     async def test_client_initialization_errors(self):
         """Test client initialization errors"""
-        from rest_client import AioHttpRestClient
+        from pydantic_rest_client import AioHttpRestClient
         
         # Test with empty URL
         with pytest.raises(ValueError, match="base_url cannot be empty"):

@@ -99,7 +99,18 @@ except RestClientError as e:
     print(f"Request failed: {e}")
 ```
 
-### Without Pydantic Validation
+#### Methods
+
+- `get(url, headers=None)` - GET request
+- `post(url, data=None, form_data=None, headers=None)` - POST request
+- `put(url, data=None, headers=None)` - PUT request
+- `patch(url, data=None, headers=None)` - PATCH request
+- `delete(url, headers=None)` - DELETE request
+- `close()` - Close the session
+
+### validate_response
+
+Decorator for automatic response validation with Pydantic models.
 
 ```python
 # Skip validation for raw data
@@ -139,19 +150,6 @@ pip install fastapi uvicorn[standard]
 # Start the test API server
 python test_api.py
 ```
-
-The server will be available at `http://localhost:8000` with the following endpoints:
-
-- `GET /users/{id}` - Get user by ID
-- `POST /users` - Create new user
-- `PUT /users/{id}` - Update user
-- `PATCH /users/{id}` - Partially update user
-- `DELETE /users/{id}` - Delete user
-- `GET /headers` - Check request headers
-- `POST /echo` - Echo request data
-- `GET /not-found` - Always returns 404
-- `GET /unauthorized` - Always returns 401
-- `GET /server-error` - Always returns 500
 
 ### Testing with Local API
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Error handling examples in pydantic_rest_client
 
@@ -6,7 +7,7 @@ when working with REST APIs through pydantic_rest_client.
 """
 
 import asyncio
-from rest_client import AioHttpRestClient, NetworkError, ResponseError, ValidationError
+from pydantic_rest_client import AioHttpRestClient, NetworkError, ResponseError, ValidationError
 from pydantic import BaseModel
 
 

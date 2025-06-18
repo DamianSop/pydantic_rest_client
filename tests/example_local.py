@@ -6,7 +6,7 @@ This example works with the test_api.py FastAPI server
 
 import asyncio
 from pydantic import BaseModel
-from rest_client import AioHttpRestClient, validate_response
+from pydantic_rest_client import AioHttpRestClient, validate_response
 
 
 # Pydantic models for our test API
