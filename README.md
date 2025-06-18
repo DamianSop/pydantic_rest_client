@@ -1,88 +1,238 @@
 # Pydantic REST Client
 
-## Description
-Pydantic REST Client is a Python library for simplifying interactions with REST APIs using Pydantic models for request and response data validation.
+A lightweight, async HTTP client for Python with Pydantic validation support.
 
 ## Features
-- Integration with REST APIs through asynchronous requests.
-- Data validation with Pydantic models.
-- Simplifies the request and response handling process.
+
+- **Async HTTP client** using aiohttp
+- **Pydantic validation** for request/response data
+- **Header management** with global and per-request headers
+- **Session reuse** for better performance
+- **Error handling** with custom exceptions
+- **Type hints** throughout the codebase
 
 ## Installation
-Install the library using pip:
 
+```bash
+pip install pydantic-rest-client
 ```
 
-pip install git+https://github.com/DamianSop/pydantic_rest_client.git
-
-```
-
-## Usage
-Here is a simple example of how to use the Pydantic REST Client:
+## Quick Start
 
 ```python
 import asyncio
-
-from rest_client import AioHttpRestClient
 from pydantic import BaseModel
+from rest_client import AioHttpRestClient, validate_response
 
-
-# Define Pydantic models for data validation
-class GetUserModel(BaseModel):
+# Define your Pydantic models
+class User(BaseModel):
     id: int
-    first_name: str | None
-
-
-class DataModel(BaseModel):
-    data: GetUserModel
-
-
-class PostUserModel(BaseModel):
     name: str
-    job: str
-    id: int
-    createdAt: str
+    email: str
 
+class CreateUserRequest(BaseModel):
+    name: str
+    email: str
 
-# Create an API client using AioHttpRestClient
-class ApiExample:
-    client = AioHttpRestClient('https://reqres.in/api')
+# Create API client
+class UserAPI:
+    def __init__(self):
+        self.client = AioHttpRestClient(
+            base_url='https://api.example.com',
+            headers={'Authorization': 'Bearer your-token'}
+        )
+    
+    @validate_response(User)
+    async def get_user(self, user_id: int):
+        """Get user by ID with automatic validation"""
+        return await self.client.get(f'/users/{user_id}')
+    
+    @validate_response(User)
+    async def create_user(self, name: str, email: str):
+        """Create user with automatic validation"""
+        data = CreateUserRequest(name=name, email=email)
+        return await self.client.post('/users', data=data.dict())
 
-    # Define a method to get user data
-    @client.get_response_model(DataModel)
-    def get_user(self, user_id: int):
-        return self.client.get(f'/users/{user_id}')
-
-    # Define a method to post user data
-    @client.get_response_model(PostUserModel)
-    def post_user(self, name: str, job: str):
-        user_dict = {
-            'name': name,
-            'job': job
-        }
-        return self.client.post(f'/users', user_dict)
-
-
+# Usage
 async def main():
-    api_example = ApiExample()
+    api = UserAPI()
+    
+    # Get user
+    user, status = await api.get_user(1)
+    print(f"User: {user.name}, Status: {status}")
+    
+    # Create user
+    new_user, status = await api.create_user("John Doe", "john@example.com")
+    print(f"Created: {new_user.name}, Status: {status}")
+    
+    # Clean up
+    await api.client.close()
 
-    # Get user data for user with ID 2
-    user, status_code = await api_example.get_user(2)
-    print(status_code)  # Output: 200
-    print(user)  # Output: data=UserModel(id=2, first_name='Janet')
-
-    # Post user data
-    user, status_code = await api_example.post_user(name='Damian', job='developer')
-    print(status_code)  # Output: 201
-    print(user)  # Output: name='Damian' job='developer' id=718 createdAt='2024-03-25T13:23:28.625Z'
-
-
-if __name__ == '__main__':
-    asyncio.run(main())
+asyncio.run(main())
 ```
 
-## Contributing
-We welcome contributions! Feel free to fork the project, make your changes, and submit a pull request.
+## Advanced Usage
+
+### Custom Headers
+
+```python
+# Global headers
+client = AioHttpRestClient(
+    base_url='https://api.example.com',
+    headers={'Authorization': 'Bearer token', 'X-API-Version': '1.0'}
+)
+
+# Per-request headers
+result, status = await client.get('/users/1', headers={'X-Request-ID': '123'})
+```
+
+### Error Handling
+
+```python
+from rest_client.exceptions import RestClientError, ValidationError
+
+try:
+    user, status = await api.get_user(1)
+except ValidationError as e:
+    print(f"Validation failed: {e}")
+except RestClientError as e:
+    print(f"Request failed: {e}")
+```
+
+### Without Pydantic Validation
+
+```python
+# Skip validation for raw data
+result, status = await client.get('/raw-data')
+print(f"Raw response: {result}")
+```
+
+## Testing
+
+### Running Tests
+
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests
+python -m pytest tests/ -v
+
+# Run with coverage
+python -m pytest tests/ --cov=rest_client --cov-report=html
+
+# Run simple tests
+python test_simple.py
+
+# Run full test suite
+python run_tests.py
+```
+
+### Local Test API
+
+For testing HTTP requests without external dependencies, we provide a local FastAPI server:
+
+```bash
+# Install FastAPI dependencies
+pip install fastapi uvicorn[standard]
+
+# Start the test API server
+python test_api.py
+```
+
+The server will be available at `http://localhost:8000` with the following endpoints:
+
+- `GET /users/{id}` - Get user by ID
+- `POST /users` - Create new user
+- `PUT /users/{id}` - Update user
+- `PATCH /users/{id}` - Partially update user
+- `DELETE /users/{id}` - Delete user
+- `GET /headers` - Check request headers
+- `POST /echo` - Echo request data
+- `GET /not-found` - Always returns 404
+- `GET /unauthorized` - Always returns 401
+- `GET /server-error` - Always returns 500
+
+### Testing with Local API
+
+```bash
+# Method 1: Use the provided script (recommended)
+python run_api_tests.py
+
+# Method 2: Set environment variable manually
+# On Windows:
+set TEST_API=1
+python -m pytest tests/ -v
+
+# On Linux/Mac:
+export TEST_API=1
+python -m pytest tests/ -v
+
+# Method 3: Set environment variable inline
+# On Windows:
+set TEST_API=1 && python -m pytest tests/ -v
+
+# On Linux/Mac:
+TEST_API=1 python -m pytest tests/ -v
+
+# Or run the local API demo
+python tests/example_local.py
+```
+
+### API Documentation
+
+When the test server is running, you can view the interactive API documentation at:
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+## Development
+
+### Project Structure
+
+```
+pydantic_rest_client/
+├── rest_client/
+│   ├── __init__.py
+│   ├── base_rest_client.py
+│   ├── aiohttp_rest_client.py
+│   └── exceptions.py
+├── tests/
+│   ├── __init__.py
+│   ├── example.py
+│   ├── example_local.py
+│   └── test_example.py
+├── test_api.py
+├── test_simple.py
+├── run_tests.py
+├── requirements-dev.txt
+└── README.md
+```
+
+### Code Quality
+
+```bash
+# Format code
+black .
+
+# Lint code
+flake8 rest_client tests
+
+# Type checking
+mypy rest_client
+
+# Run all checks
+python run_tests.py
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Run the test suite
+6. Submit a pull request
 
 ## License
-This project is licensed under the MIT License - see the LICENSE.md file for details.
+
+This project is licensed under the MIT License - see the LICENSE file for details.
