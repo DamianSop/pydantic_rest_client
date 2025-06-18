@@ -22,7 +22,7 @@ pip install pydantic-rest-client
 ```python
 import asyncio
 from pydantic import BaseModel
-from rest_client import AioHttpRestClient, validate_response
+from pydantic_rest_client import AioHttpRestClient, validate_response
 
 # Define your Pydantic models
 class User(BaseModel):
@@ -89,7 +89,7 @@ result, status = await client.get('/users/1', headers={'X-Request-ID': '123'})
 ### Error Handling
 
 ```python
-from rest_client.exceptions import RestClientError, ValidationError
+from pydantic_rest_client import NetworkError, ResponseError, ValidationError
 
 try:
     user, status = await api.get_user(1)
@@ -189,7 +189,7 @@ When the test server is running, you can view the interactive API documentation 
 
 ```
 pydantic_rest_client/
-├── rest_client/
+├── pydantic_rest_client/
 │   ├── __init__.py
 │   ├── base_rest_client.py
 │   ├── aiohttp_rest_client.py
